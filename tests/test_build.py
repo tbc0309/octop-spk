@@ -37,6 +37,25 @@ class BuildTests(unittest.TestCase):
                 self.assertEqual((compose/'.octop-container.env').stat().st_mode & 0o777,0o600)
 
     @unittest.skipIf(os.name=='nt','Linux Actions 执行真实 shell 升级测试')
+    def test_reinstall_recovers_persistent_config_without_old_link(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory=Path(temporary)
+            (directory/'package/docker').mkdir(parents=True)
+            (directory/'package/docker/compose.yaml').write_text('{}')
+            saved=directory/'volume1/@appdata/docker-octop/container.env'
+            saved.parent.mkdir(parents=True)
+            saved.write_text('OCTOP_DEFAULT_PASSWORD="Original123"\n')
+            source=(ROOT/'template/outer/scripts/prepare-compose').read_text()
+            source=source.replace('/var/packages/docker-octop/var/container.env',str(directory/'missing.env'))
+            source=source.replace('/volume*/@appstore/docker-octop)',str(directory)+'/volume*/@appstore/docker-octop)')
+            script=directory/'prepare-compose'
+            script.write_text(source)
+            env={k:v for k,v in os.environ.items() if not k.startswith(('wizard_','SYNOPKG_'))}
+            env.update(SYNOPKG_PKGINST_TEMP_DIR=str(directory),SYNOPKG_PKGDEST=str(directory/'volume1/@appstore/docker-octop'))
+            subprocess.run(['sh',str(script)],env=env,capture_output=True,check=True)
+            self.assertEqual((directory/'package/docker/.octop-container.env').read_bytes(),saved.read_bytes())
+
+    @unittest.skipIf(os.name=='nt','Linux Actions 执行真实 shell 升级测试')
     def test_missing_upgrade_config_fails_without_creating_credentials(self):
         with tempfile.TemporaryDirectory() as temporary:
             directory=Path(temporary)
