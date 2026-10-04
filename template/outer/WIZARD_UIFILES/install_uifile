@@ -1,6 +1,6 @@
 [
   {
-    "step_title": "Octop administrator",
+    "step_title": "Administrator account and password",
     "items": [
       {
         "type": "textfield",
@@ -34,7 +34,7 @@
         ]
       },
       {
-        "desc": "Administrator password is required: 8–64 characters, including letters and digits, excluding common weak passwords. Default port: 8088."
+        "desc": "Octop is an open-source, multi-user and multi-agent AI assistant platform from Tencent. Set the administrator account and password. The password is required: 8–64 characters, including letters and digits, excluding common weak passwords. Default port: 8088."
       }
     ]
   },
@@ -91,7 +91,7 @@
         ]
       },
       {
-        "desc": "API keys are optional. info is recommended; debug is for troubleshooting and produces more logs. Models can also be configured in the Octop web dashboard. Existing settings are preserved during upgrades."
+        "desc": "API keys may be left blank. The default log level is info (recommended); debug produces more logs for troubleshooting. Configure models and other components in the Web console after installation. Upgrades retain existing settings."
       }
     ]
   }

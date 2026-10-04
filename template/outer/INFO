@@ -1,8 +1,8 @@
 package="docker-octop"
 version="1.0.2-5"
 displayname="Octop"
-description="Octop is a self-hosted multi-user AI assistant. It uses the official Docker image, which is downloaded during the first installation. The web port is 8088."
-description_chs="Octop 是自托管的多用户 AI 助手。使用官方 Docker 镜像部署，首次安装下载镜像，网页端口为 8088。"
+description="Octop is an open-source, multi-user and multi-agent AI assistant platform from Tencent. It supports a Web console, CLI, IM channels and scheduled tasks, with data stored locally. Open the package to access the Web console on port 8088. Set the administrator account and password in the installation wizard, then configure LLM models and other components in the console. This Docker edition uses the official GHCR image; Chromium and the virtual desktop environment require on-demand installation."
+description_chs="Octop 是腾讯开源的多用户多智能体 AI 助手平台，支持 Web 控制台、CLI、IM 渠道与定时任务，数据保存在本地。安装后点击套件的「打开」按钮进入 Web 控制台，默认端口为 8088。管理员账号与密码在安装向导中设置；首次登录后，请在控制台中配置 LLM 模型及其他组件。Docker 版使用官方 GHCR 镜像部署，Chromium 和虚拟桌面环境需按需安装。"
 
 arch="apollolake avoton braswell broadwell broadwellnk broadwellnkv2 broadwellntbap bromolow cedarview denverton epyc7002 epyc7003 epyc7003ntb geminilake geminilakenk grantley icelaked kvmx64 purley r1000 r1000nk v1000 v1000nk x86 x86_64"
 maintainer="TencentCloud"

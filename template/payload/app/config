@@ -1,8 +1,8 @@
 {
   ".url": {
     "SYNO.SDS.OctopDocker.Application": {
-      "title": "Octop Docker",
-      "desc": "Octop AI Assistant",
+      "title": "Octop",
+      "desc": "Multi-user, multi-agent AI assistant",
       "icon": "images/octop-{0}.png",
       "type": "url",
       "protocol": "http",
