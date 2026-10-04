@@ -1,0 +1,10 @@
+[
+  {
+    "step_title": "Upgrade notice",
+    "items": [
+      {
+        "desc": "Upgrading Octop recreates the container. After upgrading, open the Web console and reinstall the browser and desktop environment. The Octop shared folder, application data and saved account settings are retained."
+      }
+    ]
+  }
+]

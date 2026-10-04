@@ -98,4 +98,11 @@ class BuildTests(unittest.TestCase):
         self.assertIn('exit 3',script)
         self.assertIn('exit 4',script)
 
+    def test_upgrade_wizard(self):
+        for suffix,notice in (('', 'reinstall the browser and desktop environment'),('_chs','重新安装浏览器和桌面环境')):
+            wizard=ROOT/'template/outer/WIZARD_UIFILES'/('upgrade_uifile'+suffix)
+            data=json.loads(wizard.read_text(encoding='utf-8'))
+            self.assertIn(notice,data[0]['items'][0]['desc'])
+            self.assertNotIn('subitems',data[0]['items'][0])
+
 if __name__=='__main__': unittest.main()

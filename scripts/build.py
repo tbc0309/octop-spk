@@ -84,6 +84,7 @@ def audit(path):
         assert 'port-config' not in json.loads(archive.extractfile('conf/resource').read())
         for lang in ('','_chs'):
             json.loads(archive.extractfile('WIZARD_UIFILES/install_uifile'+lang).read())
+            json.loads(archive.extractfile('WIZARD_UIFILES/upgrade_uifile'+lang).read())
         with tarfile.open(fileobj=io.BytesIO(payload)) as inner:
             assert all(m.mode==0o755 and m.uid==m.gid==0 for m in inner)
             service = json.loads(inner.extractfile('docker/compose.yaml').read())['services']['octop']
