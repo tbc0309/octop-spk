@@ -26,10 +26,10 @@ python -m unittest discover -s tests -v
 
 ## 官方文档核对与已知限制
 
-- [Docker Project Worker](https://help.synology.com/developer-guide/resource_acquisition/docker-project.html)：projects.path 指向包含 compose.yaml 的相对目录；Container Manager 1432 起提供，文档要求 DSM 7.2.1。当前 INFO 的 7.2-64570 下限仍比此要求低，尚未改变，需在正式发布前确定是否提高到 7.2.1-69057。
+- [Docker Project Worker](https://help.synology.com/developer-guide/resource_acquisition/docker-project.html)：projects.path 指向包含 compose.yaml 的相对目录；Container Manager 1432 起提供。INFO 最低版本为 7.2.1-69057，与文档要求一致。
 - [Data Share](https://help.synology.com/developer-guide/resource_acquisition/data_share.html)：通过 data-share 创建共享目录及访问权限，DSM 自动提供 shares 符号链接，卸载不删除共享数据。
 - [Privilege Config](https://help.synology.com/developer-guide/privilege/privilege_config.html)：套件生命周期使用 package 身份；Compose 的容器 root 与宿主机套件身份是两回事。
-- [控制脚本](https://help.synology.com/developer-guide/synology_package/scripts.html)：升级过程会执行新包 preinst/postinst，当前通过 preinst 恢复保存的环境配置。status 的非运行返回值仍需按文档细化为 3（未运行）或 4（未知），当前 grep 失败返回 1。
+- [控制脚本](https://help.synology.com/developer-guide/synology_package/scripts.html)：升级过程会执行新包 preinst/postinst，当前通过 preinst 恢复保存的环境配置。status 返回 0（运行）、3（未运行）或 4（查询失败、未知）。
 
 ### 2026-10-04 实体机只读诊断
 

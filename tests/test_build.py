@@ -35,4 +35,11 @@ class BuildTests(unittest.TestCase):
             self.assertNotIn('storeArray',text)
             self.assertIn('wizard_log_level',text)
 
+    def test_dsm_requirements(self):
+        info=(ROOT/'template/outer/INFO').read_text(encoding='utf-8')
+        self.assertIn('os_min_ver="7.2.1-69057"',info)
+        script=(ROOT/'template/outer/scripts/start-stop-status').read_text(encoding='utf-8')
+        self.assertIn('exit 3',script)
+        self.assertIn('exit 4',script)
+
 if __name__=='__main__': unittest.main()
