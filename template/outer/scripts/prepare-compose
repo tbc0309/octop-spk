@@ -1,0 +1,38 @@
+#!/bin/sh
+set -eu
+# 以实际存在的配置文件定位解包目录，不假定临时目录层级。
+TEMP=${SYNOPKG_PKGINST_TEMP_DIR:?}
+COMPOSE=
+for CANDIDATE in "$TEMP/docker/compose.yaml" "$TEMP/package/docker/compose.yaml"; do
+    [ -f "$CANDIDATE" ] || continue
+    COMPOSE="$CANDIDATE"
+    break
+done
+[ -n "$COMPOSE" ] || { echo "找不到已解包的容器配置" >&2; exit 1; }
+SHARE=$(dirname "$COMPOSE")
+SAVED=/var/packages/docker-octop/var/container.env
+if [ -f "$SAVED" ]; then
+    cp "$SAVED" "$SHARE/.octop-container.env"
+fi
+if [ ! -f "$SHARE/.octop-container.env" ]; then
+    umask 077
+    env_quote() {
+        printf '"'
+        printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\$/$$/g'
+        printf '"'
+    }
+    {
+        printf 'OCTOP_ADMIN_USERNAME='
+        env_quote "$wizard_admin_user"
+        printf '\nOCTOP_DEFAULT_PASSWORD='
+        env_quote "$wizard_admin_password"
+        printf '\n'
+        printf 'OCTOP_LOG_LEVEL='
+        env_quote "${wizard_log_level:-info}"
+        printf '\nOPENAI_API_KEY='
+        env_quote "${wizard_openai_api_key:-}"
+        printf '\nDASHSCOPE_API_KEY='
+        env_quote "${wizard_dashscope_api_key:-}"
+        printf '\n'
+    } > "$SHARE/.octop-container.env"
+fi

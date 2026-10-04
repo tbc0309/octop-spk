@@ -1,0 +1,7 @@
+* text=auto
+*.py text eol=lf
+*.yml text eol=lf
+template/outer/scripts/* text eol=lf
+template/outer/INFO text eol=lf
+*.png binary
+*.PNG binary

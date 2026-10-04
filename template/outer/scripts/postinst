@@ -1,0 +1,4 @@
+#!/bin/sh
+set -eu
+umask 077
+cp "$SYNOPKG_PKGDEST/docker/.octop-container.env" "$SYNOPKG_PKGVAR/container.env"

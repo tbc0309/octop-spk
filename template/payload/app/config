@@ -1,0 +1,16 @@
+{
+  ".url": {
+    "SYNO.SDS.OctopDocker.Application": {
+      "title": "Octop Docker",
+      "desc": "Octop AI Assistant",
+      "icon": "images/octop-{0}.png",
+      "type": "url",
+      "protocol": "http",
+      "port": "8088",
+      "url": "/",
+      "allUsers": true,
+      "grantPrivilege": "all",
+      "advanceGrantPrivilege": true
+    }
+  }
+}

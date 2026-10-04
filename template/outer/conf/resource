@@ -1,0 +1,27 @@
+{
+  "data-share": {
+    "shares": [
+      {
+        "name": "Octop",
+        "permission": {
+          "rw": [
+            "docker-octop"
+          ]
+        }
+      }
+    ]
+  },
+  "docker-project": {
+    "projects": [
+      {
+        "name": "synology-octop",
+        "path": "docker",
+        "build_params": {
+          "force_pull": true,
+          "force_recreate": true,
+          "build": false
+        }
+      }
+    ]
+  }
+}

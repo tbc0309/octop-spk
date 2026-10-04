@@ -1,0 +1,27 @@
+{
+  "services": {
+    "octop": {
+      "image": "ghcr.io/tencentcloud/octop:latest",
+      "container_name": "synology-octop",
+      "restart": "unless-stopped",
+      "user": "root",
+      "ports": [
+        "8088:8088"
+      ],
+      "volumes": [
+        "/var/packages/docker-octop/shares/Octop:/data"
+      ],
+      "env_file": [
+        ".octop-container.env"
+      ],
+      "environment": {
+        "HOME": "/data",
+        "XDG_CACHE_HOME": "/data/.cache",
+        "PLAYWRIGHT_BROWSERS_PATH": "/data/.cache/ms-playwright",
+        "OCTOP_BIND_HOST": "0.0.0.0",
+        "OCTOP_PORT": "8088",
+        "OCTOP_ADMIN_DISPLAY_NAME": "Admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+/dist/
+/build/
+__pycache__/
+*.pyc
+template/outer/package.tgz
+.env
+**/.octop-container.env
+**/container.env
+*.before-browser-fix

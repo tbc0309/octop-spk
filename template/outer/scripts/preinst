@@ -1,0 +1,4 @@
+#!/bin/sh
+set -eu
+export OCTOP_PREPARE_INSTALL=true
+exec "$(dirname "$0")/prepare-compose"

@@ -1,0 +1,98 @@
+[
+  {
+    "step_title": "Octop administrator",
+    "items": [
+      {
+        "type": "textfield",
+        "desc": "Administrator username",
+        "subitems": [
+          {
+            "key": "wizard_admin_user",
+            "defaultValue": "admin",
+            "validator": {
+              "allowBlank": false,
+              "regex": "^[A-Za-z0-9][A-Za-z0-9_.-]{1,31}$"
+            }
+          }
+        ]
+      },
+      {
+        "type": "textfield",
+        "desc": "Administrator password",
+        "subitems": [
+          {
+            "key": "wizard_admin_password",
+            "inputType": "password",
+            "validator": {
+              "allowBlank": false,
+              "minLength": 8,
+              "maxLength": 64,
+              "regex": "^(?!(?:[pP][aA][sS][sS][wW][oO][rR][dD]|[pP][aA][sS][sS][wW][oO][rR][dD]1|[pP][aA][sS][sS][wW][oO][rR][dD]12|[pP][aA][sS][sS][wW][oO][rR][dD]123|12345678|123456789|[qQ][wW][eE][rR][tT][yY]123|[aA][dD][mM][iI][nN]123|[wW][eE][lL][cC][oO][mM][eE]1|[lL][eE][tT][mM][eE][iI][nN]1|[cC][hH][aA][nN][gG][eE][mM][eE]1|[oO][cC][tT][oO][pP]123|[aA][bB][cC]12345|[iI][lL][oO][vV][eE][yY][oO][uU]1)$)(?=.{8,64}$)(?=.*[A-Za-z])(?=.*[0-9]).+$",
+              "invalidText": "Use 8–64 characters with letters and digits. Common weak passwords are not allowed."
+            }
+          }
+        ]
+      },
+      {
+        "desc": "Administrator password is required: 8–64 characters, including letters and digits, excluding common weak passwords. Default port: 8088."
+      }
+    ]
+  },
+  {
+    "step_title": "Advanced settings (optional)",
+    "items": [
+      {
+        "type": "combobox",
+        "desc": "Log level (info recommended)",
+        "subitems": [
+          {
+            "key": "wizard_log_level",
+            "defaultValue": "info",
+            "editable": false,
+            "store": [
+              "info",
+              "debug",
+              "warning"
+            ],
+            "validator": {
+              "allowBlank": false
+            }
+          }
+        ]
+      },
+      {
+        "type": "textfield",
+        "desc": "OpenAI API Key (optional)",
+        "subitems": [
+          {
+            "key": "wizard_openai_api_key",
+            "defaultValue": "",
+            "validator": {
+              "allowBlank": true,
+              "regex": "^[^\r\n]*$"
+            },
+            "inputType": "password"
+          }
+        ]
+      },
+      {
+        "type": "textfield",
+        "desc": "DashScope API Key (optional)",
+        "subitems": [
+          {
+            "key": "wizard_dashscope_api_key",
+            "defaultValue": "",
+            "validator": {
+              "allowBlank": true,
+              "regex": "^[^\r\n]*$"
+            },
+            "inputType": "password"
+          }
+        ]
+      },
+      {
+        "desc": "API keys are optional. info is recommended; debug is for troubleshooting and produces more logs. Models can also be configured in the Octop web dashboard. Existing settings are preserved during upgrades."
+      }
+    ]
+  }
+]

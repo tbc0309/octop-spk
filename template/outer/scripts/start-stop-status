@@ -1,0 +1,8 @@
+#!/bin/sh
+# 启停由群晖资源工作器处理；状态仅通过群晖只读工具查询。
+case "$1" in
+    start|stop) exit 0 ;;
+    status) /var/packages/ContainerManager/target/tool/docker_inspect synology-octop 2>/dev/null | grep -q '"Status": "running"' ;;
+    log) echo "请在 Container Manager 中查看 synology-octop 容器日志。" ;;
+    *) exit 1 ;;
+esac

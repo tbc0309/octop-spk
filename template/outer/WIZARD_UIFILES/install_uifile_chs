@@ -1,0 +1,98 @@
+[
+  {
+    "step_title": "Octop 初始账户",
+    "items": [
+      {
+        "type": "textfield",
+        "desc": "管理员用户名",
+        "subitems": [
+          {
+            "key": "wizard_admin_user",
+            "defaultValue": "admin",
+            "validator": {
+              "allowBlank": false,
+              "regex": "^[A-Za-z0-9][A-Za-z0-9_.-]{1,31}$"
+            }
+          }
+        ]
+      },
+      {
+        "type": "textfield",
+        "desc": "管理员密码",
+        "subitems": [
+          {
+            "key": "wizard_admin_password",
+            "inputType": "password",
+            "validator": {
+              "allowBlank": false,
+              "minLength": 8,
+              "maxLength": 64,
+              "regex": "^(?!(?:[pP][aA][sS][sS][wW][oO][rR][dD]|[pP][aA][sS][sS][wW][oO][rR][dD]1|[pP][aA][sS][sS][wW][oO][rR][dD]12|[pP][aA][sS][sS][wW][oO][rR][dD]123|12345678|123456789|[qQ][wW][eE][rR][tT][yY]123|[aA][dD][mM][iI][nN]123|[wW][eE][lL][cC][oO][mM][eE]1|[lL][eE][tT][mM][eE][iI][nN]1|[cC][hH][aA][nN][gG][eE][mM][eE]1|[oO][cC][tT][oO][pP]123|[aA][bB][cC]12345|[iI][lL][oO][vV][eE][yY][oO][uU]1)$)(?=.{8,64}$)(?=.*[A-Za-z])(?=.*[0-9]).+$",
+              "invalidText": "密码须为 8–64 位，包含字母和数字，且不能使用常见弱密码。"
+            }
+          }
+        ]
+      },
+      {
+        "desc": "管理员密码必填，须为 8–64 位并包含字母和数字，不可使用常见弱密码。默认端口 8088。"
+      }
+    ]
+  },
+  {
+    "step_title": "高级配置（可选）",
+    "items": [
+      {
+        "type": "combobox",
+        "desc": "日志级别（info 推荐）",
+        "subitems": [
+          {
+            "key": "wizard_log_level",
+            "defaultValue": "info",
+            "editable": false,
+            "store": [
+              "info",
+              "debug",
+              "warning"
+            ],
+            "validator": {
+              "allowBlank": false
+            }
+          }
+        ]
+      },
+      {
+        "type": "textfield",
+        "desc": "OpenAI API Key（可选）",
+        "subitems": [
+          {
+            "key": "wizard_openai_api_key",
+            "defaultValue": "",
+            "validator": {
+              "allowBlank": true,
+              "regex": "^[^\r\n]*$"
+            },
+            "inputType": "password"
+          }
+        ]
+      },
+      {
+        "type": "textfield",
+        "desc": "DashScope API Key（可选）",
+        "subitems": [
+          {
+            "key": "wizard_dashscope_api_key",
+            "defaultValue": "",
+            "validator": {
+              "allowBlank": true,
+              "regex": "^[^\r\n]*$"
+            },
+            "inputType": "password"
+          }
+        ]
+      },
+      {
+        "desc": "以下配置均可留空。info 推荐；debug 用于排障，日志量较大。安装后可在 Octop 网页中配置模型，升级保留现有参数。"
+      }
+    ]
+  }
+]

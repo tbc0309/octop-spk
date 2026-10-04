@@ -1,0 +1,10 @@
+[
+  {
+    "step_title": "Keep data",
+    "items": [
+      {
+        "desc": "The Octop shared folder and all data are kept after uninstall. Delete them manually in File Station if no longer needed."
+      }
+    ]
+  }
+]

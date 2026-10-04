@@ -1,0 +1,51 @@
+name: Octop 群晖 Docker 自动打包
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 测试通过后发布到本私有仓库
+        type: boolean
+        default: false
+permissions:
+  contents: write
+concurrency:
+  group: octop-build
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: 测试模板与打包逻辑
+        run: |
+          python -m unittest discover -s tests -v
+          for script in template/outer/scripts/*; do sh -n "$script"; done
+      - name: 获取官方版本与锁定镜像
+        id: source
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python scripts/prepare.py
+      - name: 构建与审计 SPK
+        if: steps.source.outputs.build == 'true'
+        run: python scripts/build.py --version '${{ steps.source.outputs.version }}' --image '${{ steps.source.outputs.image }}' --fpk build/source.fpk
+      - uses: actions/upload-artifact@v4
+        if: steps.source.outputs.build == 'true'
+        with:
+          name: Octop-${{ steps.source.outputs.version }}-x86_64-DSM7.2
+          path: dist/*
+          if-no-files-found: error
+      - name: 发布私有仓库 Release
+        if: steps.source.outputs.build == 'true' && (github.event_name == 'schedule' || inputs.publish)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.source.outputs.tag }}
+          PRE: ${{ steps.source.outputs.prerelease }}
+        run: |
+          args=()
+          if [ "$PRE" = true ]; then args+=(--prerelease); fi
+          gh release create "$TAG" dist/* --title "$TAG" --notes '根据官方 Docker FPK 自动构建。镜像摘要及校验值详见附件 build-manifest.json。' "${args[@]}"
