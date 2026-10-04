@@ -1,6 +1,8 @@
 import importlib.util
 import io
 import json
+import os
+import subprocess
 import tarfile
 import tempfile
 import unittest
@@ -12,6 +14,41 @@ builder=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(builder)
 
 class BuildTests(unittest.TestCase):
+    @unittest.skipIf(os.name=='nt','Linux Actions 执行真实 shell 升级测试')
+    def test_upgrade_preserves_config_after_old_link_removed(self):
+        for layout in ('docker','package/docker'):
+            with self.subTest(layout=layout), tempfile.TemporaryDirectory() as temporary:
+                directory=Path(temporary)
+                compose=directory/layout
+                compose.mkdir(parents=True)
+                (compose/'compose.yaml').write_text('{}')
+                old=directory/'old-var'
+                old.mkdir()
+                content='OCTOP_ADMIN_USERNAME="original"\nOCTOP_DEFAULT_PASSWORD="Test12345"\n'
+                (old/'container.env').write_text(content)
+                script=directory/'prepare-compose'
+                script.write_text((ROOT/'template/outer/scripts/prepare-compose').read_text().replace('/var/packages/docker-octop/var/container.env',str(directory/'missing.env')))
+                env={k:v for k,v in os.environ.items() if not k.startswith('wizard_')}
+                env.update(SYNOPKG_PKGINST_TEMP_DIR=str(directory),SYNOPKG_PKGVAR=str(old))
+                subprocess.run(['sh',str(script),'--upgrade'],env=env,check=True,capture_output=True)
+                (old/'container.env').unlink()
+                subprocess.run(['sh',str(script)],env=env,check=True,capture_output=True)
+                self.assertEqual((compose/'.octop-container.env').read_text(),content)
+                self.assertEqual((compose/'.octop-container.env').stat().st_mode & 0o777,0o600)
+
+    @unittest.skipIf(os.name=='nt','Linux Actions 执行真实 shell 升级测试')
+    def test_missing_upgrade_config_fails_without_creating_credentials(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory=Path(temporary)
+            (directory/'docker').mkdir()
+            (directory/'docker/compose.yaml').write_text('{}')
+            script=directory/'prepare-compose'
+            script.write_text((ROOT/'template/outer/scripts/prepare-compose').read_text().replace('/var/packages/docker-octop/var/container.env',str(directory/'missing.env')))
+            env={k:v for k,v in os.environ.items() if not k.startswith(('wizard_','SYNOPKG_'))}
+            env['SYNOPKG_PKGINST_TEMP_DIR']=str(directory)
+            result=subprocess.run(['sh',str(script),'--upgrade'],env=env,capture_output=True)
+            self.assertNotEqual(result.returncode,0)
+            self.assertFalse((directory/'docker/.octop-container.env').exists())
     def test_version(self):
         self.assertEqual(builder.version_number('1.0.2b5'),'1.0.2-205')
         with self.assertRaises(ValueError): builder.version_number('../bad')

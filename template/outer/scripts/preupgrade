@@ -1,2 +1,4 @@
 #!/bin/sh
-exit 0
+set -eu
+# 旧包移除前，把现有配置保存到新包解包目录；缺少配置则停止升级。
+exec "$(dirname "$0")/prepare-compose" --upgrade

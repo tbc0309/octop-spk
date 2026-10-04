@@ -1,5 +1,6 @@
 #!/bin/sh
 set -eu
+umask 077
 # 以实际存在的配置文件定位解包目录，不假定临时目录层级。
 TEMP=${SYNOPKG_PKGINST_TEMP_DIR:?}
 COMPOSE=
@@ -10,12 +11,31 @@ for CANDIDATE in "$TEMP/docker/compose.yaml" "$TEMP/package/docker/compose.yaml"
 done
 [ -n "$COMPOSE" ] || { echo "找不到已解包的容器配置" >&2; exit 1; }
 SHARE=$(dirname "$COMPOSE")
-SAVED=/var/packages/docker-octop/var/container.env
-if [ -f "$SAVED" ]; then
-    cp "$SAVED" "$SHARE/.octop-container.env"
+ENV_FILE="$SHARE/.octop-container.env"
+# 升级时先读尚存在的套件链接；失败后重装也可从同卷持久目录恢复。
+PERSISTENT=
+DEST=${SYNOPKG_PKGDEST:-}
+case "$DEST" in
+    /volume*/@appstore/docker-octop)
+        PERSISTENT="${DEST%/@appstore/docker-octop}/@appdata/docker-octop/container.env"
+        ;;
+esac
+if [ ! -f "$ENV_FILE" ]; then
+    for SAVED in "${SYNOPKG_PKGVAR:-}/container.env" /var/packages/docker-octop/var/container.env "$PERSISTENT"; do
+        [ -n "$SAVED" ] && [ -f "$SAVED" ] || continue
+        cp "$SAVED" "$ENV_FILE"
+        break
+    done
 fi
-if [ ! -f "$SHARE/.octop-container.env" ]; then
-    umask 077
+if [ ! -f "$ENV_FILE" ]; then
+    if [ "${1:-}" = --upgrade ]; then
+        echo "现有容器配置缺失，已停止升级，未覆盖账号或密钥。" >&2
+        exit 1
+    fi
+    if [ -z "${wizard_admin_user:-}" ] || [ -z "${wizard_admin_password:-}" ]; then
+        echo "未找到保存的配置，也未提供安装账号密码；请重新打开安装向导。" >&2
+        exit 1
+    fi
     env_quote() {
         printf '"'
         printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\$/$$/g'
@@ -34,5 +54,6 @@ if [ ! -f "$SHARE/.octop-container.env" ]; then
         printf '\nDASHSCOPE_API_KEY='
         env_quote "${wizard_dashscope_api_key:-}"
         printf '\n'
-    } > "$SHARE/.octop-container.env"
+    } > "$ENV_FILE"
 fi
+chmod 0600 "$ENV_FILE"
