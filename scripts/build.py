@@ -28,7 +28,7 @@ def add(archive, name, data, stamp):
     info.mtime = stamp
     archive.addfile(info, io.BytesIO(data))
 
-def build(version, image, fpk, output):
+def build(version, image, fpk, output, channel=None):
     numeric = version_number(version)
     if not re.fullmatch(r'ghcr\.io/tencentcloud/octop@sha256:[0-9a-f]{64}', image):
         raise ValueError('必须使用固定的官方镜像摘要')
@@ -56,7 +56,8 @@ def build(version, image, fpk, output):
     outer['package.tgz'] = buffer.getvalue()
     checksum = hashlib.md5(outer['package.tgz']).hexdigest()
     info = outer['INFO'].decode()
-    changes = {'version':numeric,'beta':'yes' if re.search(r'(a|b|rc)\d+$',version) else 'no',
+    is_beta = channel == 'beta' if channel else bool(re.search(r'(a|b|rc)\d+$',version))
+    changes = {'version':numeric,'beta':'yes' if is_beta else 'no',
                'checksum':checksum,'changelog':f'更新 Octop 到 v{version}。升级会重建容器，请在 Web 控制台重新安装浏览器和桌面环境；共享数据保留。'}
     for key,value in changes.items():
         info = re.sub(rf'^{key}="[^"]*"',f'{key}="{value}"',info,flags=re.M)
@@ -99,5 +100,6 @@ if __name__=='__main__':
     parser.add_argument('--image',required=True)
     parser.add_argument('--fpk',type=Path,required=True)
     parser.add_argument('--output',type=Path,default=ROOT/'dist')
+    parser.add_argument('--channel',choices=('stable','beta'))
     args=parser.parse_args()
-    build(args.version,args.image,args.fpk,args.output)
+    build(args.version,args.image,args.fpk,args.output,args.channel)

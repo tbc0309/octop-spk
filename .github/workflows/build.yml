@@ -43,7 +43,7 @@ jobs:
         run: python scripts/prepare.py --channel '${{ matrix.channel }}'
       - name: 构建与审计 SPK
         if: steps.source.outputs.build == 'true'
-        run: python scripts/build.py --version '${{ steps.source.outputs.version }}' --image '${{ steps.source.outputs.image }}' --fpk build/source.fpk
+        run: python scripts/build.py --version '${{ steps.source.outputs.version }}' --image '${{ steps.source.outputs.image }}' --fpk build/source.fpk --channel '${{ matrix.channel }}'
       - uses: actions/upload-artifact@v4
         if: steps.source.outputs.build == 'true'
         with:
