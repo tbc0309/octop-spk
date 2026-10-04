@@ -15,7 +15,8 @@ def version_number(version):
     if not match:
         raise ValueError('上游版本格式未支持，停止构建以避免误命名')
     major, minor, patch, stage, revision = match.groups()
-    build = {'a':100, 'b':200, 'rc':300, None:400}[stage] + int(revision or 0)
+    # 保留上游尾部编号作为套件修订号，不再使用测试阶段的偏移编号。
+    build = int(revision or 1)
     return f'{major}.{minor}.{patch}-{build}'
 
 def add(archive, name, data, stamp):
@@ -55,13 +56,13 @@ def build(version, image, fpk, output):
     outer['package.tgz'] = buffer.getvalue()
     checksum = hashlib.md5(outer['package.tgz']).hexdigest()
     info = outer['INFO'].decode()
-    changes = {'version':numeric,'beta':'yes' if re.search(r'(a|b|rc)\d+$',version) else 'no',
+    changes = {'version':numeric,'beta':'no',
                'checksum':checksum,'changelog':f'更新 Octop 到 v{version}。升级会重建容器，请在 Web 控制台重新安装浏览器和桌面环境；共享数据保留。'}
     for key,value in changes.items():
         info = re.sub(rf'^{key}="[^"]*"',f'{key}="{value}"',info,flags=re.M)
     outer['INFO'] = (info.rstrip()+'\n').encode()
     output.mkdir(parents=True,exist_ok=True)
-    target = output/f'docker-octop_v{version}_x86_64-DSM7.2.spk'
+    target = output/f'docker-octop_v{numeric}_x86_64-DSM7.2.spk'
     temporary = target.with_suffix('.spk.tmp')
     with tarfile.open(temporary,'w') as archive:
         for name,data in sorted(outer.items()): add(archive,name,data,stamp)

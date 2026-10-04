@@ -1,6 +1,8 @@
 # Octop 群晖 Docker 套件
 
-参考 TencentCloud/Octop 的 `fnos/docker`，适配群晖 DSM 7.2.1+ 和 Container Manager。当前为私有测试项目。
+参考 TencentCloud/Octop 的 `fnos/docker`，适配群晖 DSM 7.2.1+ 和 Container Manager。仓库保持私有，套件按正式版发布。
+
+上游 1.0.2b5 对应套件正式版本 1.0.2-5，文件名使用套件版本；manifest 另行保留上游版本和镜像摘要。测试包 1.0.2-205 的版本号高于正式包，DSM 可能拒绝直接覆盖，需要保留数据后重新安装正式包。
 
 - 套件账户：`docker-octop`，`run-as: package`。
 - 容器内部：`user: root`；不启用 privileged，不挂载 Docker socket 或 DSM 根目录。

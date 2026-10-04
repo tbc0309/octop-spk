@@ -69,7 +69,7 @@ class BuildTests(unittest.TestCase):
             self.assertNotEqual(result.returncode,0)
             self.assertFalse((directory/'docker/.octop-container.env').exists())
     def test_version(self):
-        self.assertEqual(builder.version_number('1.0.2b5'),'1.0.2-205')
+        self.assertEqual(builder.version_number('1.0.2b5'),'1.0.2-5')
         with self.assertRaises(ValueError): builder.version_number('../bad')
 
     def test_package(self):
@@ -83,6 +83,11 @@ class BuildTests(unittest.TestCase):
             with tarfile.open(fpk,'w') as archive: builder.add(archive,'app.tgz',app.getvalue(),1)
             target=builder.build('1.0.2b5','ghcr.io/tencentcloud/octop@sha256:'+'a'*64,fpk,directory/'out')
             builder.audit(target)
+            self.assertEqual(target.name,'docker-octop_v1.0.2-5_x86_64-DSM7.2.spk')
+            with tarfile.open(target) as archive:
+                info=archive.extractfile('INFO').read()
+                self.assertIn(b'version="1.0.2-5"',info)
+                self.assertIn(b'beta="no"',info)
 
     def test_wizard(self):
         for suffix in ('','_chs'):
