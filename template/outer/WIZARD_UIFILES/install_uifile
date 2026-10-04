@@ -91,7 +91,7 @@
         ]
       },
       {
-        "desc": "API keys may be left blank. The default log level is info (recommended); debug produces more logs for troubleshooting. Configure models and other components in the Web console after installation. Upgrades retain existing settings."
+        "desc": "API keys may be left blank. The default log level is info (recommended); debug produces more logs for troubleshooting. Configure models and other components in the Web console after installation. Upgrades retain existing settings but recreate the container. After upgrading, reinstall the browser and desktop environment from the Web console. Shared data is retained."
       }
     ]
   }
