@@ -87,7 +87,7 @@ class BuildTests(unittest.TestCase):
             with tarfile.open(target) as archive:
                 info=archive.extractfile('INFO').read()
                 self.assertIn(b'version="1.0.2-5"',info)
-                self.assertIn(b'beta="no"',info)
+                self.assertIn(b'beta="yes"',info)
 
     def test_wizard(self):
         for suffix in ('','_chs'):

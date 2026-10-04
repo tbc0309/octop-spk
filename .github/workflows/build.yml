@@ -4,6 +4,11 @@ on:
     - cron: '17 */6 * * *'
   workflow_dispatch:
     inputs:
+      channel:
+        description: 发布渠道
+        type: choice
+        options: [all, stable, beta]
+        default: all
       publish:
         description: 测试通过后发布到本私有仓库
         type: boolean
@@ -15,6 +20,11 @@ concurrency:
   cancel-in-progress: false
 jobs:
   build:
+    name: 构建 ${{ matrix.channel }}
+    strategy:
+      fail-fast: false
+      matrix:
+        channel: [stable, beta]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,14 +39,15 @@ jobs:
         id: source
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: python scripts/prepare.py
+        if: github.event_name == 'schedule' || inputs.channel == 'all' || inputs.channel == matrix.channel
+        run: python scripts/prepare.py --channel '${{ matrix.channel }}'
       - name: 构建与审计 SPK
         if: steps.source.outputs.build == 'true'
         run: python scripts/build.py --version '${{ steps.source.outputs.version }}' --image '${{ steps.source.outputs.image }}' --fpk build/source.fpk
       - uses: actions/upload-artifact@v4
         if: steps.source.outputs.build == 'true'
         with:
-          name: Octop-${{ steps.source.outputs.version }}-x86_64-DSM7.2
+          name: Octop-${{ matrix.channel }}-${{ steps.source.outputs.version }}-x86_64-DSM7.2
           path: dist/*
           if-no-files-found: error
       - name: 发布私有仓库 Release
@@ -45,7 +56,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.source.outputs.tag }}
           PRE: ${{ steps.source.outputs.prerelease }}
+          VERSION: ${{ steps.source.outputs.version }}
         run: |
-          args=()
-          if [ "$PRE" = true ]; then args+=(--prerelease); fi
-          gh release create "$TAG" dist/* --title "$TAG" --notes '根据官方 Docker FPK 自动构建。镜像摘要及校验值详见附件 build-manifest.json。' "${args[@]}"
+          latest=true
+          label=正式版
+          if [ "$PRE" = true ]; then latest=false; label=测试版; fi
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+            gh release edit "$TAG" --title "Octop $VERSION（$label）" --prerelease="$PRE" --latest="$latest"
+          else
+            gh release create "$TAG" dist/* --title "Octop $VERSION（$label）" --notes '根据官方 Docker FPK 自动构建。镜像摘要及校验值详见附件 build-manifest.json。' --prerelease="$PRE" --latest="$latest"
+          fi

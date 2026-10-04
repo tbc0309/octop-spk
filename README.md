@@ -49,14 +49,14 @@ Octop 是腾讯开源的多用户多智能体 AI 助手平台，支持 Web 控�
 
 ## 自动构建
 
-GitHub Actions 每 6 小时检查带有 Docker FPK 附件的上游非草稿 Release，包含上游预发布版本。发现尚未发布的版本后，自动获取官方 FPK、构建 SPK、执行测试与审计，并创建 Release。Release 的预发布状态跟随上游。
+GitHub Actions 每 6 小时分别检查正式版和测试版渠道，各自选择带有 Docker FPK 附件的最新上游非草稿 Release。发现尚未发布的版本后，自动构建并发布：正式版使用 beta="no"，发布为普通 Release 和 Latest；a/b/rc 版本使用 beta="yes"，发布为 Pre-release，不覆盖正式版 Latest。上游标记为预发布的版本也归入测试渠道。
 
 也可在 **Actions → Octop 群晖 Docker 自动打包 → Run workflow** 手动构建：
 
 - 默认只生成 Action artifact，不发布 Release。
-- 勾选 `publish` 后发布构建附件；已有同名 Release 时应先处理发布冲突。
+- 可选择 all、stable 或 beta 渠道；勾选 `publish` 后发布构建附件，已有同名 Release 时更新该版本附件及发布状态。
 
-构建时解析官方 `ghcr.io/tencentcloud/octop:latest` 的镜像摘要，并将摘要固定写入套件，避免同一个 SPK 安装时随 `latest` 漂移。FPK 的发布版本与镜像摘要分别记录，不以 FPK 文件名作为镜像版本一致性的保证。
+构建时获取与上游版本同名的官方镜像标签并固定摘要，不使用 latest 混合两个渠道。对应镜像尚未发布时构建失败，不回退到其他版本的镜像。
 
 发布附件包含 SPK 和 `build-manifest.json`。后者记录上游版本、套件版本、镜像摘要、源 FPK SHA256、SPK SHA256、payload checksum 及构建时间，便于核验与追踪。
 

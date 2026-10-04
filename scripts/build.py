@@ -56,7 +56,7 @@ def build(version, image, fpk, output):
     outer['package.tgz'] = buffer.getvalue()
     checksum = hashlib.md5(outer['package.tgz']).hexdigest()
     info = outer['INFO'].decode()
-    changes = {'version':numeric,'beta':'no',
+    changes = {'version':numeric,'beta':'yes' if re.search(r'(a|b|rc)\d+$',version) else 'no',
                'checksum':checksum,'changelog':f'更新 Octop 到 v{version}。升级会重建容器，请在 Web 控制台重新安装浏览器和桌面环境；共享数据保留。'}
     for key,value in changes.items():
         info = re.sub(rf'^{key}="[^"]*"',f'{key}="{value}"',info,flags=re.M)
