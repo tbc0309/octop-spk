@@ -1,43 +1,103 @@
-# Octop 群晖 Docker 套件
+# Octop for Synology DSM
 
-参考 TencentCloud/Octop 的 `fnos/docker`，适配群晖 DSM 7.2.1+ 和 Container Manager。仓库保持私有，套件按正式版发布。
+将 [TencentCloud/Octop](https://github.com/TencentCloud/Octop) 适配为群晖 SPK 套件，通过 Container Manager 部署官方 Docker 镜像。
 
-上游 1.0.2b5 对应套件正式版本 1.0.2-5，文件名使用套件版本；manifest 另行保留上游版本和镜像摘要。测试包 1.0.2-205 的版本号高于正式包，DSM 可能拒绝直接覆盖，需要保留数据后重新安装正式包。
+Octop 是腾讯开源的多用户多智能体 AI 助手平台，支持 Web 控制台、CLI、IM 渠道与定时任务。本项目提供非官方群晖适配，不修改 Octop 应用源码。
 
-- 套件账户：`docker-octop`，`run-as: package`。
-- 容器内部：`user: root`；不启用 privileged，不挂载 Docker socket 或 DSM 根目录。
-- 网页端口：8088，由 Container Manager 注册，无重复的 port-config。
-- 共享目录：`Octop`，挂载为 `/data`；卸载保留。
-- Playwright 缓存：`/data/.cache/ms-playwright`，首次使用由应用下载浏览器。
-- browser / desktop Python 附加组件不等于 Chromium、浏览器系统库和完整 Linux 虚拟桌面已安装。网页提示按需安装不代表 SPK 丢失了镜像内容。
-- 升级会重建容器，请在 Web 控制台重新安装浏览器和桌面环境；共享数据保留。浏览器文件可能仍在共享缓存，但容器内后装的系统运行库和桌面组件不会随共享数据保留。
-- 中英文安装向导：账号、必填密码、日志级别、可选 OpenAI / DashScope API Key。
-- 密钥只写入 0600 的运行时环境文件，不输出到日志。容器 root 可修改共享数据，不是宿主机权限隔离的绝对保证。
+## 环境要求
+
+- DSM **7.2.1-69057 或更高版本**。
+- x86_64 群晖设备；当前不提供 ARM 套件。
+- 已安装 **Container Manager 20.10.23-1432 或更高版本**。
+- 能访问 GitHub、GHCR 及应用组件所需的下载服务。
+- 网页端口 **8088** 未被其他服务占用。
+
+## 安装与使用
+
+1. 从 [Releases](https://github.com/tbc0309/octop-spk/releases) 下载适合设备的 `.spk` 文件。
+2. 在 DSM「套件中心 → 手动安装」中选择文件。
+3. 设置管理员账号和密码。密码必填，须为 8–64 位并包含字母和数字，不允许常见弱密码。
+4. 按需填写高级配置：日志级别默认 `info`（推荐），OpenAI API Key、DashScope API Key 可留空。
+5. 完成安装并启动套件。首次安装需要下载官方容器镜像，请耐心等待。
+6. 点击套件的「打开」，或访问 `http://NAS地址:8088`，在 Web 控制台配置 LLM 模型、IM 渠道及其他组件。
+
+浏览器和桌面环境由 Octop Web 控制台按需安装。Python 附加组件与完整的 Chromium、系统运行库、虚拟桌面环境并非同一内容；附加组件已存在不代表浏览器或桌面已经可以运行。
+
+## 升级与卸载
+
+升级保留已保存的账号配置及共享数据，但会重新创建容器。
+
+> **升级完成后，请在 Web 控制台重新安装浏览器和桌面环境。** 容器内后装的系统依赖不会随共享数据保留。中英文升级向导也会显示此提醒。
+
+升级前建议备份 `Octop` 共享目录。卸载套件不会删除该共享目录；不再需要的数据可在卸载后通过 File Station 手动清理。
+
+## 数据与权限
+
+| 项目 | 说明 |
+| --- | --- |
+| 套件标识 | `docker-octop` |
+| 套件账户 | `docker-octop`，生命周期脚本使用 `run-as: package` |
+| 容器名称 | `synology-octop` |
+| 共享目录 | `Octop`，挂载至容器的 `/data` |
+| 应用数据 | 容器内 `/data/.octop` |
+| 浏览器缓存 | 容器内 `/data/.cache/ms-playwright` |
+| 运行配置 | 套件持久目录中的 `container.env`，权限 `0600` |
+
+容器内部使用 `root`，不等于套件脚本以 DSM root 身份运行。项目不启用 privileged 模式，不挂载 Docker socket 或 DSM 根目录；容器仍可读写挂载的 `Octop` 共享目录，请妥善保护数据与密钥。
+
+需要排查应用问题时，可在 Container Manager 中查看 `synology-octop` 的容器日志。提交日志前请删除密码、API Key 和其他敏感信息。
 
 ## 自动构建
 
-工作流每 6 小时检测官方最新非草稿 Release（包括预发布），使用该版本的 Docker FPK 图标和官方镜像的实时摘要。镜像当前以 amd64 为目标。镜像摘要及源包 SHA256记录在 `build-manifest.json`，版本号本身不能证明镜像和 Release 版本相同。
+GitHub Actions 每 6 小时检查带有 Docker FPK 附件的上游非草稿 Release，包含上游预发布版本。发现尚未发布的版本后，自动获取官方 FPK、构建 SPK、执行测试与审计，并创建 Release。Release 的预发布状态跟随上游。
 
-新版本定时构建成功后创建私有 GitHub Release；手动构建默认只上传 artifact，勾选发布选项才发布。Release 是否为预发布跟随上游。
+也可在 **Actions → Octop 群晖 Docker 自动打包 → Run workflow** 手动构建：
 
-```sh
-python scripts/build.py --version 1.0.2b5 --image ghcr.io/tencentcloud/octop@sha256:<digest> --fpk /path/to/Octop-fnos-docker-1.0.2b5.fpk
-python -m unittest discover -s tests -v
+- 默认只生成 Action artifact，不发布 Release。
+- 勾选 `publish` 后发布构建附件；已有同名 Release 时应先处理发布冲突。
+
+构建时解析官方 `ghcr.io/tencentcloud/octop:latest` 的镜像摘要，并将摘要固定写入套件，避免同一个 SPK 安装时随 `latest` 漂移。FPK 的发布版本与镜像摘要分别记录，不以 FPK 文件名作为镜像版本一致性的保证。
+
+发布附件包含 SPK 和 `build-manifest.json`。后者记录上游版本、套件版本、镜像摘要、源 FPK SHA256、SPK SHA256、payload checksum 及构建时间，便于核验与追踪。
+
+套件文件名使用 DSM 套件版本，例如：
+
+```text
+docker-octop_v1.0.2-5_x86_64-DSM7.2.spk
 ```
 
-依赖 Python 3.11+ 标准库，无硬编码 Windows 路径。所有归档项 root:root、0755、打包时间；INFO、向导和脚本通过自动检查。Actions 验证不代替 DSM 实体机安装与功能测试。
+文件名中的 `DSM7.2` 表示系统系列，实际最低版本以环境要求和套件 INFO 为准。
 
-## 官方文档核对与已知限制
+## 本地构建
 
-- [Docker Project Worker](https://help.synology.com/developer-guide/resource_acquisition/docker-project.html)：projects.path 指向包含 compose.yaml 的相对目录；Container Manager 1432 起提供。INFO 最低版本为 7.2.1-69057，与文档要求一致。
-- [Data Share](https://help.synology.com/developer-guide/resource_acquisition/data_share.html)：通过 data-share 创建共享目录及访问权限，DSM 自动提供 shares 符号链接，卸载不删除共享数据。
-- [Privilege Config](https://help.synology.com/developer-guide/privilege/privilege_config.html)：套件生命周期使用 package 身份；Compose 的容器 root 与宿主机套件身份是两回事。
-- [控制脚本](https://help.synology.com/developer-guide/synology_package/scripts.html)：升级过程会执行新包 preinst/postinst。preupgrade 在旧包移除前将配置复制到新包解包目录；preinst 复用配置，不要求升级提供向导变量。失败后重装可从目标安装卷的 @appdata/docker-octop/container.env 恢复配置，不跨卷搜索、不重新生成密码。status 返回 0（运行）、3（未运行）或 4（查询失败、未知）。
+需要 Python 3.11 或更高版本，打包程序仅依赖 Python 标准库。在 Linux 环境执行测试可同时验证升级配置恢复和 shell 脚本行为。
 
-### 2026-10-04 实体机只读诊断
+```sh
+python -m unittest discover -s tests -v
 
-192.168.9.164 的官方镜像摘要为 sha256:d04de8fe43fe9c64a9534b2521844fdeedb0aae6666b0ad53f6d26ca25d9f664，镜像标注版本 1.0.2b5。运行环境有 playwright、octop-browser、mss、pynput、pillow；没有 Xvnc、Openbox、XFCE。Chromium 已下载到共享缓存，但执行 --version 失败，ldd 检测到 24 个缺失库，包括 libglib-2.0、libatk、libnss3、libX11、libgbm 和 libasound。
+python scripts/build.py \
+  --version 1.0.2b5 \
+  --image ghcr.io/tencentcloud/octop@sha256:<镜像摘要> \
+  --fpk /path/to/Octop-fnos-docker-1.0.2b5.fpk
+```
 
-官方 [镜像发布工作流](https://github.com/TencentCloud/Octop/blob/main/.github/workflows/docker-publish.yml) 实际使用 docker/Dockerfile，而非 fnos/docker/Dockerfile。两者都没有完整安装 Chromium 和虚拟桌面系统环境；[FnOS Dockerfile](https://github.com/TencentCloud/Octop/blob/main/fnos/docker/Dockerfile) 也明确将 Chromium 留给控制台按需下载。FPK manifest 的“预装附加组件”不能作为完整浏览器/桌面可直接运行的保证。
+产物默认输出至 `dist/`。`--version` 使用上游版本，构建程序转换为 DSM 套件版本；例如 `1.0.2b5` 对应 `1.0.2-5`。
 
-本次只修改说明和核对结果，不在 DSM 安装依赖、不重建容器、不更换官方镜像。运行时 apt 安装的系统依赖位于容器可写层，容器重建后通常需重新安装；要持久解决，应另行选择构建含系统依赖的派生镜像或实现可靠的容器初始化流程。
+## 项目结构
+
+```text
+.github/workflows/build.yml  自动监测、构建和发布
+scripts/prepare.py           获取上游 FPK 与官方镜像摘要
+scripts/build.py             生成 SPK、校验产物和构建清单
+template/outer/              INFO、生命周期脚本、资源配置和中英文向导
+template/payload/            DSM 网页入口及 Docker Compose 配置
+tests/                      打包、向导及升级配置恢复测试
+```
+
+## 相关项目与文档
+
+- [Octop 官方项目](https://github.com/TencentCloud/Octop)：应用功能、模型配置与上游问题反馈。
+- [本项目 Issues](https://github.com/tbc0309/octop-spk/issues)：群晖安装、升级和套件适配问题。
+- [Synology Docker Project Worker](https://help.synology.com/developer-guide/resource_acquisition/docker-project.html)。
+- [Synology Data Share](https://help.synology.com/developer-guide/resource_acquisition/data_share.html)。
+- [Synology Privilege Config](https://help.synology.com/developer-guide/privilege/privilege_config.html)。
